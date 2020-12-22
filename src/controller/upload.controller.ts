@@ -2,15 +2,11 @@ import { Pool } from "pg";
 import { DBInteractor } from "../service/db.service";
 import { UploadService } from "../service/s3.service";
 import { ImageValidation } from "../validations/upload.validation";
+import { DBConfig } from "../../config/database.config";
+
 require('dotenv').config()
 
-const pool = new Pool({
-  user: process.env.POSTGRES_USER,
-  host: process.env.POSTGRES_HOST,
-  database: process.env.POSTGRES_NAME,
-  password: process.env.POSTGRES_PASSWORD,
-  port: Number(process.env.POSTGRES_PORT),
-})
+const pool = new Pool(DBConfig.database);
 
 const DB = new DBInteractor(pool);
 const InsertDBQuery = DB.InsertDBQuery;
@@ -26,7 +22,6 @@ const UploadFunc = (req: any, res: any, err: any) => {
     console.log(err.message)
     return res.status(400).send(err.message);
   }
-  console.log(req.file)
   const { description } = req.body;
   const url = req.file && req.file.location;
   const size = req.file && req.file.size;
