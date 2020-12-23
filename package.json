@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc --project ./",
-    "start": "nodemon -r dotenv/config src/server.ts",
+    "start": "nodemon --ignore 'tmp/' -r dotenv/config src/server.ts",
     "sonar": "node sonar-project.ts",
     "test": "jest --coverage",
     "db:create": "sequelize-cli db:create",
@@ -55,7 +55,7 @@
     "sequelize-typescript": "1.1.0"
   },
   "devDependencies": {
-    "@types/elasticsearch": "5.0.37",
+    "@types/elasticsearch": "^5.0.37",
     "@types/express": "4.17.9",
     "@types/jest": "26.0.19",
     "@types/multer": "1.4.5",

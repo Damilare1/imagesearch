@@ -19,3 +19,5 @@ export class ImageValidation {
     }
   }
 }
+
+export default new ImageValidation();

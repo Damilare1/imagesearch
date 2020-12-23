@@ -1,41 +1,67 @@
-import { DataTypes } from 'sequelize'
-import { UploadService, deleteImage } from "../service/s3.service";
-import { ImageValidation } from "../validations/upload.validation";
-import  Image  from "../../models/image";
-import ImageModel from "../../models";
+import upload, { deleteImage } from "../service/s3.service";
+import imageValidation from "../validations/upload.validation";
+import { createInstance } from "../service/db.service";
+import ESService from "../service/elasticsearch.service";
 
-const sequelize = ImageModel.sequelize;
+require("dotenv").config();
 
-require('dotenv').config()
-
-const imageValidation = new ImageValidation();
-
-const upload = UploadService.single("image");
-
-const UploadFunc = async (req: any, res: any, err: any) => {
-  try{
-    imageValidation.validateImage(req,res, err)
-  }catch(err){
-    console.log(err.message)
-    return res.status(400).send(err.message);
-  }
-  const { description } = req.body;
-  const url = req.file && req.file.location;
-  const size = req.file && req.file.size;
-  const type = req.file && req.file.mimetype;
-  const name = req.file && req.file.originalname;
-
-  try{
-      await Image(sequelize, DataTypes).create({ name, type, size, url, description});
-    res
-      .status(201)
-      .send(`Successfully uploaded. Image URL: ${req.file.location}`)
-  }catch (e) {
-    await deleteImage(req.file.key);
-    res.status(500).send("Internal server error");
-  }
-
+type UploadDependencies = {
+  imageValidation: { validateImage: (req, res, err) => void };
+  createInstance: (data: any) => any;
+  ESService: { addDocument: (data: any) => any };
+  deleteImage: (key: string) => any;
+  upload: (req, res, cb: (err: any) => any) => any;
 };
 
-export default (req: any, res: any) =>
-  upload(req, res, (err: any) => UploadFunc(req, res, err));
+const UploadController = (dependencies: UploadDependencies) => {
+  const {
+    imageValidation,
+    createInstance,
+    ESService,
+    deleteImage,
+    upload,
+  } = dependencies;
+  const UploadFunc = async (req: any, res: any, err: any) => {
+    try {
+      imageValidation.validateImage(req, res, err);
+    } catch (err) {
+      console.log(err.message);
+      return res.status(400).send(err.message);
+    }
+    const { description } = req.body;
+    const url = req.file && req.file.location;
+    const size = req.file && req.file.size;
+    const type = req.file && req.file.mimetype;
+    const name = req.file && req.file.originalname;
+
+    try {
+      await createInstance({
+        name,
+        type,
+        size,
+        url,
+        description,
+      });
+      await ESService.addDocument({ description, url, size, type, name });
+      res
+        .status(201)
+        .send(`Successfully uploaded. Image URL: ${req.file.location}`);
+    } catch (e) {
+      await deleteImage(req.file.key);
+      res.status(500).send("Internal server error");
+    }
+  };
+
+  const Upload = (req: any, res: any) =>
+    upload(req, res, (err: any) => UploadFunc(req, res, err));
+
+  return { Upload };
+};
+
+export default UploadController({
+  imageValidation,
+  createInstance,
+  ESService,
+  deleteImage,
+  upload,
+});
