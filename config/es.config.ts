@@ -1,8 +1,6 @@
-import { Client } from "elasticsearch";
+import { Client } from "@elastic/elasticsearch";
 
 export const elasticClient = new Client({
-  host: "localhost:9200",
-  log: "info",
-  apiVersion: "6.8",
+  node: "http://localhost:9200",
 });
 

@@ -1,5 +1,5 @@
 "use strict";
-import { Sequelize, Model, DataTypes } from "sequelize";
+import { Model } from "sequelize";
 
 export default (sequelize, DataTypes) => {
   class image extends Model {

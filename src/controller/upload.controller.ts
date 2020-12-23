@@ -1,4 +1,4 @@
-import upload, { deleteImage } from "../service/s3.service";
+import S3Services from "../service/s3.service";
 import imageValidation from "../validations/upload.validation";
 import { createInstance } from "../service/db.service";
 import ESService from "../service/elasticsearch.service";
@@ -13,7 +13,7 @@ type UploadDependencies = {
   upload: (req, res, cb: (err: any) => any) => any;
 };
 
-const UploadController = (dependencies: UploadDependencies) => {
+export const UploadController = (dependencies: UploadDependencies) => {
   const {
     imageValidation,
     createInstance,
@@ -25,8 +25,9 @@ const UploadController = (dependencies: UploadDependencies) => {
     try {
       imageValidation.validateImage(req, res, err);
     } catch (err) {
+      res.status(400).send(err.message);
       console.log(err.message);
-      return res.status(400).send(err.message);
+      return err.message;
     }
     const { description } = req.body;
     const url = req.file && req.file.location;
@@ -46,22 +47,23 @@ const UploadController = (dependencies: UploadDependencies) => {
       res
         .status(201)
         .send(`Successfully uploaded. Image URL: ${req.file.location}`);
-    } catch (e) {
+    } catch (err) {
       await deleteImage(req.file.key);
       res.status(500).send("Internal server error");
+      return err.message
     }
   };
 
   const Upload = (req: any, res: any) =>
     upload(req, res, (err: any) => UploadFunc(req, res, err));
 
-  return { Upload };
+  return { Upload, UploadFunc };
 };
 
 export default UploadController({
   imageValidation,
   createInstance,
   ESService,
-  deleteImage,
-  upload,
+  deleteImage: S3Services.deleteImage,
+  upload: S3Services.upload,
 });

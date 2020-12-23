@@ -16,6 +16,7 @@ describe("Upload Endpoint", () => {
       .attach('image', filePath1);
       expect(res.status).toEqual(201);
       const { text } = res;
+      console.log(text);
       expect(text).toBe(`Successfully uploaded. Image URL: ${process.env.AWS_S3_SERVER}/${process.env.AWS_S3_BUCKET}/earth.jpg`);
       done();
     });
