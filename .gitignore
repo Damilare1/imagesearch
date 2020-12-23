@@ -7,3 +7,5 @@
 yarn*
 report-task.txt
 /.scannerwork
+/migrations
+/seeders
