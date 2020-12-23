@@ -1,21 +1,18 @@
-import { Pool } from "pg";
-import { DBInteractor } from "../service/db.service";
-import { UploadService } from "../service/s3.service";
+import { DataTypes } from 'sequelize'
+import { UploadService, deleteImage } from "../service/s3.service";
 import { ImageValidation } from "../validations/upload.validation";
-import { DBConfig } from "../../config/database.config";
+import  Image  from "../../models/image";
+import ImageModel from "../../models";
+
+const sequelize = ImageModel.sequelize;
 
 require('dotenv').config()
-
-const pool = new Pool(DBConfig.database);
-
-const DB = new DBInteractor(pool);
-const InsertDBQuery = DB.InsertDBQuery;
 
 const imageValidation = new ImageValidation();
 
 const upload = UploadService.single("image");
 
-const UploadFunc = (req: any, res: any, err: any) => {
+const UploadFunc = async (req: any, res: any, err: any) => {
   try{
     imageValidation.validateImage(req,res, err)
   }catch(err){
@@ -28,21 +25,16 @@ const UploadFunc = (req: any, res: any, err: any) => {
   const type = req.file && req.file.mimetype;
   const name = req.file && req.file.originalname;
 
-  const successCb = () =>{
+  try{
+      await Image(sequelize, DataTypes).create({ name, type, size, url, description});
     res
       .status(201)
-      .send(`Successfully uploaded. Image URL: ${req.file.location}`);}
-
-  const errorCb = () => res.status(500).send("Internal server error");
-  try{
-    InsertDBQuery(
-      [description, url, name, size, type],
-      successCb,
-      errorCb
-    );  
-  }catch(e){
-
+      .send(`Successfully uploaded. Image URL: ${req.file.location}`)
+  }catch (e) {
+    await deleteImage(req.file.key);
+    res.status(500).send("Internal server error");
   }
+
 };
 
 export default (req: any, res: any) =>

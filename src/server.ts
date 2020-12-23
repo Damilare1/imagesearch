@@ -8,6 +8,8 @@ dotenv.config();
 const PORT = process.env.PORT;
 
 const app = express();
+app.disable("x-powered-by");
+
 app.use(bodyParser.json());
 
 app.use('/images', upload);

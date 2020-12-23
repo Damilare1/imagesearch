@@ -1,8 +1,7 @@
 import request, { Response } from "supertest";
 import fs from "mz/fs";
-import server from "../index";
+import server from "../server";
 require('dotenv').config()
-
 
 const filePath1: string = `${__dirname}/TestImage/earth.jpg`;
 const filePath2: string = `${__dirname}/TestImage/earth-large.png`;
@@ -29,7 +28,7 @@ describe("Upload Endpoint", () => {
       .attach('image', filePath2);
       expect(res.status).toEqual(400);
       const { text } = res;
-      expect(text).toBe(`Error, please select an image of the appropriate size to upload`);
+      expect(text).toBe(`File too large`);
       done();
     });
   });
@@ -70,6 +69,6 @@ describe("Upload Endpoint", () => {
 });
 afterAll(async (done) => {
   // close server conection
-  server.close();
+  await server.close(done);
   done();
 });

@@ -5,11 +5,6 @@ import { imageFilter } from "../helpers/imagefilter";
 import { S3Config } from "../../config/s3.config";
 require("dotenv").config();
 
-/*const s3 = new AWS.S3({
-  accessKeyId: "AKIAIAT6MI3ABH2XHPQA",
-  secretAccessKey: "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",
-});*/
-
 const s3 = new AWS.S3(S3Config.config);
 
 const { bucket } = S3Config;
@@ -31,7 +26,7 @@ export const UploadService = multer({
 });
 
 export const deleteImage = (key: string) => {
-  s3.deleteObject(
+  return s3.deleteObject(
     {
       Bucket: bucket,
       Key: key,

@@ -2,4 +2,8 @@
 /coverage
 /tmp
 /build
+.DS_Store
 .env
+yarn*
+report-task.txt
+/.scannerwork
