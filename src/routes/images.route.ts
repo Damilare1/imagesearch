@@ -5,7 +5,7 @@ import Get from "../controller/image.controller";
 
 const router = Router();
 
-router.post("/upload", Upload.Upload);
+router.post("/", Upload.Upload);
 router.get("/", Get.handleRequest);
 
 export default router;
